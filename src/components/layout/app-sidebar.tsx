@@ -4,9 +4,10 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/layout/logo"
-import { LayoutDashboard, FilePlus2, Landmark, FileText } from "lucide-react"
+import { LayoutDashboard, FilePlus2, Landmark, Settings } from "lucide-react"
 import Link from "next/link"
 
 const menuItems = [
@@ -38,6 +39,18 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Settings">
+              <Link href="#">
+                <Settings />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </>
   )
 }
