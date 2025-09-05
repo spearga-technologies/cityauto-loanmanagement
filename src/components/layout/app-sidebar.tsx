@@ -7,11 +7,11 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/layout/logo"
-import { UserPlus, Settings } from "lucide-react"
+import { Users, Settings } from "lucide-react"
 import Link from "next/link"
 
 const menuItems = [
-  { href: "/users/new", label: "New User", icon: UserPlus },
+  { href: "/users", label: "Users", icon: Users },
 ]
 
 export function AppSidebar() {
