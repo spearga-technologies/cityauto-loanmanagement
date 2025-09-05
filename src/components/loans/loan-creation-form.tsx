@@ -210,6 +210,7 @@ export function LoanCreationForm() {
     }
 
     const progress = ((currentStep + 1) / (steps.length)) * 100
+    const IconComponent = steps[currentStep].icon;
 
     return (
         <Card>
@@ -282,7 +283,7 @@ export function LoanCreationForm() {
                         
                         {currentStep === 1 && (
                             <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                               <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <FormField name="loanAmount" control={form.control} render={({ field }) => (
                                         <FormItem><FormLabel>Loan Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 50000" {...field} /></FormControl><FormMessage /></FormItem>
@@ -299,7 +300,7 @@ export function LoanCreationForm() {
 
                         {currentStep === 2 && (
                             <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                               <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-6">
                                         <FormField name="make" control={form.control} render={({ field }) => (
@@ -332,7 +333,7 @@ export function LoanCreationForm() {
                         
                         {currentStep === 3 && (
                              <div className="space-y-6">
-                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                               <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="space-y-4 p-4 border rounded-md">
                                         <h4 className="font-medium">Guarantor 1 (Required)</h4>
@@ -358,7 +359,7 @@ export function LoanCreationForm() {
 
                          {currentStep === 4 && (
                             <div className="space-y-6">
-                                <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                                <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                      <FileUploadWithPreview
                                         form={form}
@@ -411,5 +412,3 @@ export function LoanCreationForm() {
         </Card>
     )
 }
-
-    
