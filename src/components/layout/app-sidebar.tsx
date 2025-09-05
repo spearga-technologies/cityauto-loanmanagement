@@ -7,7 +7,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/layout/logo"
-import { Users, Settings, Landmark, Shield, FilePlus } from "lucide-react"
+import { Users, Settings, Landmark, Shield, FilePlus, Calculator } from "lucide-react"
 import Link from "next/link"
 
 const menuItems = [
@@ -16,6 +16,7 @@ const menuItems = [
   { href: "/loans", label: "Loans", icon: FilePlus },
   { href: "/providers", label: "Providers", icon: Shield },
   { href: "/admins", label: "Admins", icon: Shield },
+  { href: "/calculator", label: "Calculator", icon: Calculator },
 ]
 
 export function AppSidebar() {
