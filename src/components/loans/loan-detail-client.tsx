@@ -1,7 +1,8 @@
 
 "use client"
 
-import type { Loan } from "@/lib/data"
+import * as React from "react"
+import type { Loan, Payment } from "@/lib/data"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,6 +16,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PaymentTracker } from "./payment-tracker"
 import Image from "next/image"
+import { Button } from "../ui/button"
+import { PlusCircle } from "lucide-react"
+import { AddPaymentDialog } from "./add-payment-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type LoanDetailClientProps = {
   loan: Loan;
@@ -27,7 +32,30 @@ const statusColors: { [key: string]: string } = {
   Paid: "text-blue-600 bg-blue-500/10",
 }
 
-export function LoanDetailClient({ loan }: LoanDetailClientProps) {
+export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
+    const [loan, setLoan] = React.useState(initialLoan);
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+    const { toast } = useToast();
+
+    const handleAddPayment = (loanId: string, payment: { amount: number; date: Date; description: string }) => {
+        setLoan(prevLoan => {
+            const newPayment: Payment = {
+                id: `P${prevLoan.payments.length + 1}`,
+                amount: payment.amount,
+                date: payment.date.toISOString().split('T')[0],
+                description: payment.description,
+            };
+            return {
+                ...prevLoan,
+                payments: [...prevLoan.payments, newPayment],
+                outstandingBalance: prevLoan.outstandingBalance - payment.amount,
+            };
+        });
+        toast({ title: "Payment Added", description: `A new payment of $${payment.amount} has been recorded for loan ${loanId}.` });
+        setIsPaymentDialogOpen(false);
+    };
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -87,9 +115,15 @@ export function LoanDetailClient({ loan }: LoanDetailClientProps) {
         </TabsContent>
         <TabsContent value="history">
           <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-              <CardDescription>A log of all payments made for this loan.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Payment History</CardTitle>
+                <CardDescription>A log of all payments made for this loan.</CardDescription>
+              </div>
+               <Button onClick={() => setIsPaymentDialogOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Payment
+                </Button>
             </CardHeader>
             <CardContent>
               <Table>
@@ -125,6 +159,12 @@ export function LoanDetailClient({ loan }: LoanDetailClientProps) {
             <PaymentTracker />
         </TabsContent>
       </Tabs>
+       <AddPaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            loan={loan}
+            onSubmit={handleAddPayment}
+        />
     </div>
   )
 }
