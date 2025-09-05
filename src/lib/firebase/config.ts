@@ -5,12 +5,13 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBm6Rx0L2AZtvWo2gmb-QUfXbdY6iGiuxI",
+    authDomain: "cityauto-36853.firebaseapp.com",
+    projectId: "cityauto-36853",
+    storageBucket: "cityauto-36853.appspot.com",
+    messagingSenderId: "1000388166027",
+    appId: "1:1000388166027:web:652102f50d7d892f312f8e",
+    measurementId: "G-8E7TGXXD2M"
 };
 
 // Initialize Firebase
