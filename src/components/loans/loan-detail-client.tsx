@@ -20,6 +20,7 @@ import { Button } from "../ui/button"
 import { PlusCircle } from "lucide-react"
 import { AddPaymentDialog } from "./add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { Separator } from "../ui/separator"
 
 type LoanDetailClientProps = {
   loan: Loan;
@@ -45,10 +46,12 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
                 date: payment.date.toISOString().split('T')[0],
                 description: payment.description,
             };
+            const newOutstandingBalance = prevLoan.outstandingBalance - payment.amount;
             return {
                 ...prevLoan,
                 payments: [...prevLoan.payments, newPayment],
-                outstandingBalance: prevLoan.outstandingBalance - payment.amount,
+                outstandingBalance: newOutstandingBalance,
+                status: newOutstandingBalance <= 0 ? 'Paid' : prevLoan.status,
             };
         });
         toast({ title: "Payment Added", description: `A new payment of $${payment.amount} has been recorded for loan ${loanId}.` });
@@ -81,35 +84,39 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
               <CardTitle>Loan Details</CardTitle>
               <CardDescription>Complete information about the loan agreement and vehicle.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+            <CardContent className="space-y-8">
+                <div className="space-y-4">
+                    <h4 className="font-semibold text-lg text-primary">Loan Summary</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       <InfoCard label="Total Amount" value={`$${loan.amount.toLocaleString()}`} />
+                       <InfoCard label="Interest Rate" value={`${loan.interestRate}%`} />
+                       <InfoCard label="Term" value={`${loan.term} months`} />
+                       <InfoCard label="Outstanding" value={`$${loan.outstandingBalance.toLocaleString()}`} className="bg-primary/10 text-primary" />
+                    </div>
+                </div>
+
+                <Separator />
+
+                <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <h4 className="font-semibold text-lg">Loan Summary</h4>
-                        <InfoItem label="Loan Amount" value={`$${loan.amount.toLocaleString()}`} />
-                        <InfoItem label="Interest Rate" value={`${loan.interestRate}%`} />
-                        <InfoItem label="Loan Term" value={`${loan.term} months`} />
-                        <InfoItem label="Outstanding Balance" value={`$${loan.outstandingBalance.toLocaleString()}`} className="font-bold text-primary" />
+                        <h4 className="font-semibold text-lg text-primary">Applicant Information</h4>
+                        <InfoItem label="Name" value={loan.applicant.name} />
+                        <InfoItem label="Email" value={loan.applicant.email} />
                         <InfoItem label="Application Date" value={loan.applicationDate} />
                     </div>
                      <div className="space-y-4">
-                        <h4 className="font-semibold text-lg">Applicant</h4>
-                        <InfoItem label="Name" value={loan.applicant.name} />
-                        <InfoItem label="Email" value={loan.applicant.email} />
+                        <h4 className="font-semibold text-lg text-primary">Vehicle Information</h4>
+                        <InfoItem label="Make & Model" value={`${loan.vehicle.make} ${loan.vehicle.model}`} />
+                        <InfoItem label="Year" value={loan.vehicle.year} />
+                        <InfoItem label="Registration #" value={loan.vehicle.vin} />
                     </div>
                 </div>
-                 <div className="space-y-4 pt-6">
-                    <h4 className="font-semibold text-lg">Vehicle Information</h4>
-                     <div className="grid md:grid-cols-3 gap-6">
-                        <div>
-                             <InfoItem label="Make & Model" value={`${loan.vehicle.make} ${loan.vehicle.model}`} />
-                             <InfoItem label="Year" value={loan.vehicle.year} />
-                             <InfoItem label="VIN" value={loan.vehicle.vin} />
-                        </div>
-                        <div className="md:col-span-2">
-                            <Image src="https://picsum.photos/600/400" data-ai-hint="car side" alt="Vehicle Image" width={600} height={400} className="rounded-lg object-cover" />
-                        </div>
-                     </div>
-                </div>
+                 <div className="space-y-4">
+                    <h4 className="font-semibold text-lg text-primary">Vehicle Photo</h4>
+                    <div className=" overflow-hidden rounded-lg border">
+                        <Image src={loan.vehicle.photoUrl} data-ai-hint="scooter motorcycle" alt="Vehicle Image" width={800} height={600} className="object-cover" />
+                    </div>
+                 </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -171,9 +178,18 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
 
 function InfoItem({ label, value, className }: { label: string, value: string | number, className?: string }) {
     return (
-        <div className="flex justify-between items-baseline">
+        <div className="flex justify-between items-baseline border-b pb-2">
             <p className="text-sm text-muted-foreground">{label}</p>
             <p className={`text-sm font-medium ${className}`}>{value}</p>
+        </div>
+    )
+}
+
+function InfoCard({ label, value, className }: { label: string, value: string | number, className?: string }) {
+    return (
+        <div className={cn("p-3 rounded-lg border bg-card", className)}>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-base font-semibold">{value}</p>
         </div>
     )
 }
