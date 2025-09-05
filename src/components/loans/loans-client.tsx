@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,16 +15,20 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { FilePlus2, MoreHorizontal, Search, DollarSign, Landmark, Clock, CheckCircle } from "lucide-react"
+import { FilePlus2, MoreHorizontal, Search, DollarSign, Landmark, Clock, CheckCircle, Pencil, PlusCircle } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
+import { AddPaymentDialog } from "./add-payment-dialog"
+import { UpdateStatusDialog } from "./update-status-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type LoansClientProps = {
   loans: Loan[];
@@ -37,28 +42,66 @@ const statusColors: { [key: string]: string } = {
 }
 
 export function LoansClient({ loans: initialLoans }: LoansClientProps) {
+  const [loans, setLoans] = React.useState(initialLoans);
   const [filter, setFilter] = React.useState("All")
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [selectedLoan, setSelectedLoan] = React.useState<Loan | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = React.useState(false);
+  const { toast } = useToast();
   
   const filteredLoans = React.useMemo(() => {
-    let loans = initialLoans;
+    let filtered = loans;
     if (filter !== "All") {
-        loans = loans.filter(loan => loan.status === filter);
+        filtered = filtered.filter(loan => loan.status === filter);
     }
     if (searchTerm) {
-        loans = loans.filter(loan => loan.applicant.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        filtered = filtered.filter(loan => loan.applicant.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-    return loans;
-  }, [filter, searchTerm, initialLoans])
+    return filtered;
+  }, [filter, searchTerm, loans])
 
   const stats = React.useMemo(() => {
     return {
-      totalValue: initialLoans.reduce((acc, loan) => acc + loan.amount, 0),
-      activeLoans: initialLoans.filter(l => l.status === 'Approved').length,
-      pendingApplications: initialLoans.filter(l => l.status === 'Pending').length,
-      totalLoans: initialLoans.length,
+      totalValue: loans.reduce((acc, loan) => acc + loan.amount, 0),
+      activeLoans: loans.filter(l => l.status === 'Approved').length,
+      pendingApplications: loans.filter(l => l.status === 'Pending').length,
+      totalLoans: loans.length,
     }
-  }, [initialLoans])
+  }, [loans])
+
+  const handleAddPayment = (loanId: string, payment: { amount: number; date: Date; description: string }) => {
+    setLoans(prevLoans => prevLoans.map(loan => {
+        if (loan.id === loanId) {
+            const newPayment = {
+                id: `P${loan.payments.length + 1}`,
+                amount: payment.amount,
+                date: payment.date.toISOString().split('T')[0],
+                description: payment.description,
+            };
+            return {
+                ...loan,
+                payments: [...loan.payments, newPayment],
+                outstandingBalance: loan.outstandingBalance - payment.amount,
+            };
+        }
+        return loan;
+    }));
+    toast({ title: "Payment Added", description: `A new payment of $${payment.amount} has been recorded for loan ${loanId}.` });
+    setIsPaymentDialogOpen(false);
+  };
+
+  const handleUpdateStatus = (loanId: string, status: Loan['status']) => {
+      setLoans(prevLoans => prevLoans.map(loan => loan.id === loanId ? { ...loan, status } : loan));
+      toast({ title: "Status Updated", description: `Loan ${loanId} has been updated to "${status}".` });
+      setIsStatusDialogOpen(false);
+  };
+
+  const openDialog = (loan: Loan, dialog: 'payment' | 'status') => {
+      setSelectedLoan(loan);
+      if (dialog === 'payment') setIsPaymentDialogOpen(true);
+      if (dialog === 'status') setIsStatusDialogOpen(true);
+  }
 
   return (
     <div className="space-y-6">
@@ -147,7 +190,15 @@ export function LoansClient({ loans: initialLoans }: LoansClientProps) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem asChild><Link href={`/loans/${loan.id}`}>View Details</Link></DropdownMenuItem>
-                          <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => openDialog(loan, 'payment')}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Payment
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => openDialog(loan, 'status')}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Update Status
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -163,6 +214,23 @@ export function LoansClient({ loans: initialLoans }: LoansClientProps) {
             </Table>
           </CardContent>
         </Card>
+        
+        {selectedLoan && (
+            <>
+                <AddPaymentDialog
+                    isOpen={isPaymentDialogOpen}
+                    onOpenChange={setIsPaymentDialogOpen}
+                    loan={selectedLoan}
+                    onSubmit={handleAddPayment}
+                />
+                <UpdateStatusDialog
+                    isOpen={isStatusDialogOpen}
+                    onOpenChange={setIsStatusDialogOpen}
+                    loan={selectedLoan}
+                    onSubmit={handleUpdateStatus}
+                />
+            </>
+        )}
     </div>
   )
 }
