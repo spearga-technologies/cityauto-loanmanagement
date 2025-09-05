@@ -7,13 +7,14 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/layout/logo"
-import { LayoutDashboard, FilePlus2, Landmark, Settings } from "lucide-react"
+import { LayoutDashboard, FilePlus2, Landmark, Settings, UserCog } from "lucide-react"
 import Link from "next/link"
 
 const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/apply", label: "Apply for Loan", icon: FilePlus2 },
   { href: "/loans", label: "All Loans", icon: Landmark },
+  { href: "/admins", label: "Admins", icon: UserCog },
 ]
 
 export function AppSidebar() {
