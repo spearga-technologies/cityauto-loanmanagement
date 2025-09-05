@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { Loan } from "@/lib/data"
@@ -40,29 +41,29 @@ export function DashboardClient({ loans }: DashboardClientProps) {
   const pendingLoans = loans.filter(l => l.status === 'Pending').length;
 
   const loanStatusData = [
-    { name: 'Approved', value: loans.filter(l => l.status === 'Approved').length, fill: "var(--color-approved)" },
-    { name: 'Pending', value: loans.filter(l => l.status === 'Pending').length, fill: "var(--color-pending)" },
-    { name: 'Rejected', value: loans.filter(l => l.status === 'Rejected').length, fill: "var(--color-rejected)" },
-    { name: 'Paid', value: loans.filter(l => l.status === 'Paid').length, fill: "var(--color-paid)" },
+    { name: 'Approved', value: loans.filter(l => l.status === 'Approved').length, fill: "hsl(var(--chart-1))" },
+    { name: 'Pending', value: loans.filter(l => l.status === 'Pending').length, fill: "hsl(var(--chart-2))" },
+    { name: 'Rejected', value: loans.filter(l => l.status === 'Rejected').length, fill: "hsl(var(--chart-3))" },
+    { name: 'Paid', value: loans.filter(l => l.status === 'Paid').length, fill: "hsl(var(--chart-4))" },
   ];
   
   const chartConfig = {
     loans: {
       label: "Loans",
     },
-    approved: {
+    Approved: {
       label: "Approved",
       color: "hsl(var(--chart-1))",
     },
-    pending: {
+    Pending: {
       label: "Pending",
       color: "hsl(var(--chart-2))",
     },
-     rejected: {
+     Rejected: {
       label: "Rejected",
       color: "hsl(var(--chart-3))",
     },
-     paid: {
+     Paid: {
       label: "Paid",
       color: "hsl(var(--chart-4))",
     },
