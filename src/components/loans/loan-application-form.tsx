@@ -33,6 +33,7 @@ const contactDetailsSchema = z.object({
 })
 
 const verificationSchema = z.object({
+  aadharNumber: z.string().min(12, "Aadhaar number must be 12 digits.").max(12, "Aadhaar number must be 12 digits."),
   aadhar: z.instanceof(File).refine(file => file.size > 0, "Aadhaar photo is required."),
   pan: z.string().optional(),
   photo: z.instanceof(File).refine(file => file.size > 0, "A profile photo is required."),
@@ -43,7 +44,7 @@ const formSchema = personalDetailsSchema.merge(contactDetailsSchema).merge(verif
 const steps = [
   { id: 'Personal Details', schema: personalDetailsSchema, fields: ['fullName', 'email'] },
   { id: 'Contact Info', schema: contactDetailsSchema, fields: ['phone', 'whatsappNumber', 'address'] },
-  { id: 'Verification', schema: verificationSchema, fields: ['aadhar', 'pan', 'photo'] },
+  { id: 'Verification', schema: verificationSchema, fields: ['aadhar', 'pan', 'photo', 'aadharNumber'] },
 ]
 
 export function LoanApplicationForm() {
@@ -63,6 +64,7 @@ export function LoanApplicationForm() {
             whatsappNumber: "",
             address: "",
             pan: "",
+            aadharNumber: "",
         },
     })
 
@@ -170,7 +172,7 @@ export function LoanApplicationForm() {
                                         <FormLabel>User Photo</FormLabel>
                                         <div className="flex items-center gap-4">
                                         <Avatar className="h-24 w-24">
-                                            <AvatarImage src={photoPreview || undefined} alt="User photo" />
+                                            <AvatarImage src={photoPreview || undefined} alt="User photo" className="object-cover" />
                                             <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
                                         </Avatar>
                                         <Button
@@ -196,6 +198,9 @@ export function LoanApplicationForm() {
                                     )}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <FormField name="aadharNumber" control={form.control} render={({ field }) => (
+                                        <FormItem><FormLabel>Aadhaar Card Number</FormLabel><FormControl><Input placeholder="12-digit number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
                                     <FormField
                                         name="aadhar"
                                         control={form.control}
