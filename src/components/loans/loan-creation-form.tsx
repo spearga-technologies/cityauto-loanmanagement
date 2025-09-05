@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import type { User as AppUser } from "@/lib/users"
 import { getAllUsers } from "@/lib/firebase/users"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import Image from "next/image"
 
 // Step Schemas
 const userSelectionSchema = z.object({
@@ -39,7 +41,7 @@ const vehicleSchema = z.object({
     model: z.string().min(2, "Vehicle model is required."),
     year: z.coerce.number().int().min(1980, "Enter a valid year."),
     vin: z.string().length(17, "VIN must be 17 characters."),
-    photo: z.instanceof(File).refine(file => file.size > 0, "Vehicle photo is required."),
+    vehiclePhoto: z.instanceof(File).refine(file => file.size > 0, "Vehicle photo is required."),
 })
 
 const guarantorSchema = z.object({
@@ -63,11 +65,77 @@ const formSchema = userSelectionSchema
 
 const steps = [
   { id: 'User Selection', schema: userSelectionSchema, fields: ['userId'], icon: User },
-  { id: 'Loan Details', schema: loanDetailsSchema, fields: ['loanAmount', 'interestRate', 'term'], icon: User },
-  { id: 'Vehicle Info', schema: vehicleSchema, fields: ['make', 'model', 'year', 'vin', 'photo'], icon: Bike },
+  { id: 'Loan Details', schema: loanDetailsSchema, fields: ['loanAmount', 'interestRate', 'term'], icon: FileSignature },
+  { id: 'Vehicle Info', schema: vehicleSchema, fields: ['make', 'model', 'year', 'vin', 'vehiclePhoto'], icon: Bike },
   { id: 'Guarantors', schema: guarantorSchema, fields: ['guarantor1Name', 'guarantor1Phone', 'guarantor2Name', 'guarantor2Phone'], icon: Users },
   { id: 'Documents', schema: documentsSchema, fields: ['signature', 'rcBook'], icon: BookImage },
 ]
+
+type FileUploadPreviewProps = {
+    file: File | undefined | null;
+    fieldName: "vehiclePhoto" | "signature" | "rcBook";
+    label: string;
+    icon: React.ReactNode;
+    form: any;
+};
+
+function FileUploadWithPreview({ file, fieldName, label, icon, form }: FileUploadPreviewProps) {
+    const [preview, setPreview] = React.useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            form.setValue(fieldName, file);
+        }
+    };
+
+    return (
+        <FormField
+            name={fieldName}
+            control={form.control}
+            render={({ field }) => (
+                <FormItem>
+                    <FormLabel>{label}</FormLabel>
+                    <div className="flex flex-col items-center gap-4 border p-4 rounded-md min-h-[228px] justify-center">
+                        {preview ? (
+                             <Image src={preview} alt={`${label} preview`} width={200} height={150} className="h-32 w-auto rounded-md object-contain" />
+                        ) : (
+                            <div className="text-muted-foreground text-center flex flex-col items-center gap-2">
+                                {icon}
+                                <span className="text-sm">Preview will appear here.</span>
+                            </div>
+                        )}
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <Upload className="mr-2 h-4 w-4" />
+                            {preview ? "Change Photo" : `Upload ${label}`}
+                        </Button>
+                        <FormControl>
+                            <Input
+                                type="file"
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept="image/*"
+                            />
+                        </FormControl>
+                    </div>
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
+    );
+}
 
 export function LoanCreationForm() {
     const { toast } = useToast()
@@ -80,7 +148,19 @@ export function LoanCreationForm() {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {},
+        defaultValues: {
+            loanAmount: 0,
+            interestRate: 0,
+            term: 0,
+            make: "",
+            model: "",
+            year: new Date().getFullYear(),
+            vin: "",
+            guarantor1Name: "",
+            guarantor1Phone: "",
+            guarantor2Name: "",
+            guarantor2Phone: "",
+        },
     })
 
     React.useEffect(() => {
@@ -129,7 +209,7 @@ export function LoanCreationForm() {
         setCurrentStep(0);
     }
 
-    const progress = ((currentStep + 1) / (steps.length + 1)) * 100
+    const progress = ((currentStep + 1) / (steps.length)) * 100
 
     return (
         <Card>
@@ -142,7 +222,7 @@ export function LoanCreationForm() {
             <CardContent>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="space-y-8 p-1">
+                    <div className="space-y-8 p-1 min-h-[350px]">
                         
                         {currentStep === 0 && (
                             <div className="space-y-4">
@@ -190,7 +270,7 @@ export function LoanCreationForm() {
                                                     <p className="text-muted-foreground">{selectedUser.email}</p>
                                                 </div>
                                             </div>
-                                            <Button variant="link" onClick={() => setSelectedUser(null)}>Change</Button>
+                                            <Button variant="link" onClick={() => { setSelectedUser(null); form.setValue("userId", ""); }}>Change</Button>
                                         </div>
                                     )}
                                     <FormField name="userId" control={form.control} render={({ field }) => (
@@ -202,7 +282,7 @@ export function LoanCreationForm() {
                         
                         {currentStep === 1 && (
                             <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2"><User /> Loan Details</h3>
+                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <FormField name="loanAmount" control={form.control} render={({ field }) => (
                                         <FormItem><FormLabel>Loan Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 50000" {...field} /></FormControl><FormMessage /></FormItem>
@@ -219,22 +299,82 @@ export function LoanCreationForm() {
 
                         {currentStep === 2 && (
                             <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2"><Bike /> Vehicle Information</h3>
-                               {/* Vehicle fields here */}
+                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                    <div className="space-y-6">
+                                        <FormField name="make" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Vehicle Make</FormLabel><FormControl><Input placeholder="e.g., Honda" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                         <FormField name="model" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Vehicle Model</FormLabel><FormControl><Input placeholder="e.g., Activa" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                    </div>
+                                    <div className="space-y-6">
+                                         <FormField name="year" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" placeholder="e.g., 2023" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                         <FormField name="vin" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>VIN</FormLabel><FormControl><Input placeholder="17-character VIN" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                       <FileUploadWithPreview
+                                            form={form}
+                                            file={form.watch("vehiclePhoto")}
+                                            fieldName="vehiclePhoto"
+                                            label="Vehicle Photo"
+                                            icon={<Bike />}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         )}
                         
                         {currentStep === 3 && (
-                             <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2"><Users /> Guarantors</h3>
-                                {/* Guarantor fields here */}
+                             <div className="space-y-6">
+                               <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-4 p-4 border rounded-md">
+                                        <h4 className="font-medium">Guarantor 1 (Required)</h4>
+                                        <FormField name="guarantor1Name" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField name="guarantor1Phone" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(123) 456-7890" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                    </div>
+                                    <div className="space-y-4 p-4 border rounded-md">
+                                         <h4 className="font-medium">Guarantor 2 (Optional)</h4>
+                                        <FormField name="guarantor2Name" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Jane Smith" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField name="guarantor2Phone" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(987) 654-3210" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                    </div>
+                                </div>
                             </div>
                         )}
 
                          {currentStep === 4 && (
                             <div className="space-y-6">
-                                <h3 className="text-lg font-medium flex items-center gap-2"><BookImage /> Document Uploads</h3>
-                                {/* Document upload fields here */}
+                                <h3 className="text-lg font-medium flex items-center gap-2">{steps[currentStep].icon} {steps[currentStep].id}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                     <FileUploadWithPreview
+                                        form={form}
+                                        file={form.watch("signature")}
+                                        fieldName="signature"
+                                        label="User Signature"
+                                        icon={<FileSignature />}
+                                    />
+                                    <FileUploadWithPreview
+                                        form={form}
+                                        file={form.watch("rcBook")}
+                                        fieldName="rcBook"
+                                        label="RC Book Photo"
+                                        icon={<BookImage />}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
@@ -271,3 +411,5 @@ export function LoanCreationForm() {
         </Card>
     )
 }
+
+    

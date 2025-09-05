@@ -1,6 +1,7 @@
 export type Loan = {
   id: string;
   applicant: {
+    id: string;
     name: string;
     email: string;
     avatar: string;
@@ -15,6 +16,15 @@ export type Loan = {
     model: string;
     year: number;
     vin: string;
+    photoUrl: string;
+  };
+  guarantors: {
+      name: string;
+      phone: string;
+  }[];
+  documents: {
+    signatureUrl: string;
+    rcBookUrl: string;
   };
   payments: Payment[];
   outstandingBalance: number;
@@ -32,65 +42,93 @@ export const loans: Loan[] = [
   {
     id: 'LF001',
     applicant: {
+      id: 'USR001',
       name: 'John Doe',
       email: 'john.doe@example.com',
       avatar: '/avatars/01.png',
     },
-    amount: 25000,
-    term: 60,
-    interestRate: 5.5,
+    amount: 50000,
+    term: 24,
+    interestRate: 12.5,
     status: 'Approved',
     applicationDate: '2023-10-15',
     vehicle: {
-      make: 'Toyota',
-      model: 'Camry',
+      make: 'Honda',
+      model: 'Activa 6G',
       year: 2022,
-      vin: '12345ABCDE',
+      vin: '12345ABCDEFGHIJKL',
+      photoUrl: 'https://picsum.photos/600/400',
+    },
+     guarantors: [
+      { name: 'Guarantor One', phone: '555-0101' },
+      { name: 'Guarantor Two', phone: '555-0102' }
+    ],
+    documents: {
+        signatureUrl: 'https://picsum.photos/200/100',
+        rcBookUrl: 'https://picsum.photos/300/200',
     },
     payments: [
-      { id: 'P01', date: '2023-11-15', amount: 477.42, description: 'Monthly Payment' },
-      { id: 'P02', date: '2023-12-15', amount: 477.42, description: 'Online Transfer' },
+      { id: 'P01', date: '2023-11-15', amount: 2365.7, description: 'Monthly Payment' },
+      { id: 'P02', date: '2023-12-15', amount: 2365.7, description: 'Online Transfer' },
     ],
-    outstandingBalance: 24045.16,
+    outstandingBalance: 45268.6,
   },
   {
     id: 'LF002',
     applicant: {
+      id: 'USR002',
       name: 'Jane Smith',
       email: 'jane.smith@example.com',
       avatar: '/avatars/02.png',
     },
-    amount: 35000,
-    term: 72,
-    interestRate: 6.2,
+    amount: 75000,
+    term: 36,
+    interestRate: 14.2,
     status: 'Pending',
     applicationDate: '2023-11-01',
     vehicle: {
-      make: 'Honda',
-      model: 'CR-V',
+      make: 'TVS',
+      model: 'Jupiter 125',
       year: 2023,
-      vin: '67890FGHIJ',
+      vin: '67890FGHIJKLMNOPQR',
+      photoUrl: 'https://picsum.photos/600/400',
+    },
+    guarantors: [
+      { name: 'Guarantor Three', phone: '555-0103' },
+    ],
+    documents: {
+        signatureUrl: 'https://picsum.photos/200/100',
+        rcBookUrl: 'https://picsum.photos/300/200',
     },
     payments: [],
-    outstandingBalance: 35000,
+    outstandingBalance: 75000,
   },
   {
     id: 'LF003',
     applicant: {
+      id: 'USR003',
       name: 'Sam Wilson',
       email: 'sam.wilson@example.com',
       avatar: '/avatars/03.png',
     },
-    amount: 15000,
-    term: 48,
-    interestRate: 4.9,
+    amount: 40000,
+    term: 24,
+    interestRate: 11.9,
     status: 'Paid',
-    applicationDate: '2020-05-20',
+    applicationDate: '2021-05-20',
     vehicle: {
-      make: 'Ford',
-      model: 'Focus',
-      year: 2019,
-      vin: 'KLMNO12345',
+      make: 'Suzuki',
+      model: 'Access 125',
+      year: 2021,
+      vin: 'KLMNO12345PQRSTUV',
+      photoUrl: 'https://picsum.photos/600/400',
+    },
+     guarantors: [
+      { name: 'Guarantor Four', phone: '555-0104' }
+    ],
+    documents: {
+        signatureUrl: 'https://picsum.photos/200/100',
+        rcBookUrl: 'https://picsum.photos/300/200',
     },
     payments: [],
     outstandingBalance: 0,
@@ -98,49 +136,70 @@ export const loans: Loan[] = [
   {
     id: 'LF004',
     applicant: {
+      id: 'USR004',
       name: 'Emily Clark',
       email: 'emily.clark@example.com',
       avatar: '/avatars/04.png',
     },
-    amount: 45000,
-    term: 60,
-    interestRate: 5.8,
+    amount: 90000,
+    term: 36,
+    interestRate: 13.8,
     status: 'Approved',
     applicationDate: '2023-09-28',
     vehicle: {
-      make: 'Tesla',
-      model: 'Model 3',
+      make: 'Bajaj',
+      model: 'Chetak',
       year: 2023,
-      vin: 'PQRST67890',
+      vin: 'PQRST67890UVWXYZA',
+      photoUrl: 'https://picsum.photos/600/400',
+    },
+     guarantors: [
+      { name: 'Guarantor Five', phone: '555-0105' },
+    ],
+    documents: {
+        signatureUrl: 'https://picsum.photos/200/100',
+        rcBookUrl: 'https://picsum.photos/300/200',
     },
     payments: [
-      { id: 'P01', date: '2023-10-28', amount: 865.25, description: 'Scheduled Payment' },
+      { id: 'P01', date: '2023-10-28', amount: 3094.5, description: 'Scheduled Payment' },
     ],
-    outstandingBalance: 44134.75,
+    outstandingBalance: 86905.5,
   },
   {
     id: 'LF005',
     applicant: {
+      id: 'USR005',
       name: 'Michael Brown',
       email: 'michael.brown@example.com',
       avatar: '/avatars/05.png',
     },
-    amount: 22000,
-    term: 36,
-    interestRate: 7.1,
+    amount: 65000,
+    term: 24,
+    interestRate: 15.1,
     status: 'Rejected',
     applicationDate: '2023-11-05',
     vehicle: {
-      make: 'Chevrolet',
-      model: 'Malibu',
-      year: 2020,
-      vin: 'UVWXYZ1234',
+      make: 'Hero',
+      model: 'Maestro Edge',
+      year: 2022,
+      vin: 'UVWXYZ1234ABCDEFG',
+      photoUrl: 'https://picsum.photos/600/400',
+    },
+     guarantors: [
+      { name: 'Guarantor Six', phone: '555-0106' },
+      { name: 'Guarantor Seven', phone: '555-0107' }
+    ],
+    documents: {
+        signatureUrl: 'https://picsum.photos/200/100',
+        rcBookUrl: 'https://picsum.photos/300/200',
     },
     payments: [],
-    outstandingBalance: 22000,
+    outstandingBalance: 65000,
   },
 ];
 
 export const getLoanById = (id: string): Loan | undefined => {
   return loans.find(loan => loan.id === id);
 }
+
+    
