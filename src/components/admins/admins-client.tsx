@@ -38,6 +38,12 @@ type AdminsClientProps = {
 
 export function AdminsClient({ admins: initialAdmins }: AdminsClientProps) {
   const [open, setOpen] = React.useState(false);
+  const [admins, setAdmins] = React.useState(initialAdmins);
+
+  const handleAdminAdded = (newAdmin: Admin) => {
+    setAdmins((prevAdmins) => [...prevAdmins, newAdmin]);
+    setOpen(false);
+  }
 
   return (
     <>
@@ -63,7 +69,7 @@ export function AdminsClient({ admins: initialAdmins }: AdminsClientProps) {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                       <AddAdminForm onSuccess={() => setOpen(false)} />
+                       <AddAdminForm onSuccess={handleAdminAdded} />
                     </div>
                 </DialogContent>
             </Dialog>
@@ -82,7 +88,7 @@ export function AdminsClient({ admins: initialAdmins }: AdminsClientProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialAdmins.length > 0 ? initialAdmins.map((admin) => (
+            {admins.length > 0 ? admins.map((admin) => (
               <TableRow key={admin.id}>
                 <TableCell className="font-medium flex items-center gap-3">
                   <Avatar>

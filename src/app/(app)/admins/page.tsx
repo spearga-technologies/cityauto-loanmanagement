@@ -1,14 +1,14 @@
 
 import { AdminsClient } from "@/components/admins/admins-client";
-import { admins } from "@/lib/admins";
+import { getAllAdmins } from "@/lib/firebase/admins";
 
 export const metadata = {
   title: "Manage Admins | LoanFlow",
   description: "View, add, and manage administrators.",
 };
 
-export default function AdminsPage() {
-  const allAdmins = admins;
+export default async function AdminsPage() {
+  const allAdmins = await getAllAdmins();
 
   return (
     <div className="space-y-6">

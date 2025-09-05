@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2, Upload } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import React from "react"
+import { createAdmin } from "@/lib/firebase/admins"
+import type { Admin } from "@/lib/admins"
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
@@ -27,10 +29,14 @@ const formSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters."),
   phone: z.string().min(10, "Phone number must be at least 10 digits."),
   address: z.string().min(5, "Address is required."),
-  photo: z.any().optional(),
+  photo: z.instanceof(File).refine(file => file.size > 0, "A profile photo is required."),
 })
 
-export function AddAdminForm({ onSuccess }: { onSuccess?: () => void }) {
+type AddAdminFormProps = {
+    onSuccess?: (newAdmin: Admin) => void;
+}
+
+export function AddAdminForm({ onSuccess }: AddAdminFormProps) {
     const { toast } = useToast()
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null)
     const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -52,30 +58,51 @@ export function AddAdminForm({ onSuccess }: { onSuccess?: () => void }) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPhotoPreview(reader.result as string)
-                form.setValue("photo", file)
             }
             reader.readAsDataURL(file)
+            form.setValue("photo", file)
         }
     }
 
-    const onSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log("Admin details:", values)
-        // In a real application, you would handle the file upload and Firebase user creation here.
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                toast({
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        try {
+            const newAdminData = {
+                fullName: values.fullName,
+                username: values.username,
+                phone: values.phone,
+                address: values.address,
+                photo: values.photo,
+                password_raw: values.password,
+            };
+
+            const newAdmin = await createAdmin(newAdminData);
+
+            if (newAdmin) {
+                 toast({
                     title: "Admin Created!",
-                    description: `${values.fullName} has been added as an admin.`,
+                    description: `${newAdmin.fullName} has been added as an admin.`,
                 })
                 form.reset()
                 setPhotoPreview(null)
                 if (fileInputRef.current) {
                     fileInputRef.current.value = ""
                 }
-                onSuccess?.()
-                resolve(null)
-            }, 1500)
-        })
+                onSuccess?.(newAdmin);
+            } else {
+                 toast({
+                    title: "Error",
+                    description: "Failed to create admin. The username might already be in use.",
+                    variant: "destructive",
+                })
+            }
+        } catch (error) {
+            console.error("Form submission error:", error)
+            toast({
+                title: "Something went wrong",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "destructive",
+            })
+        }
     }
 
     return (
