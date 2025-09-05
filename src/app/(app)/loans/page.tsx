@@ -3,7 +3,7 @@ import { loans } from "@/lib/data";
 
 export const metadata = {
   title: "All Loans | LoanFlow",
-  description: "View and manage all loan applications.",
+  description: "View, search, and manage all loan applications.",
 };
 
 export default function LoansPage() {
