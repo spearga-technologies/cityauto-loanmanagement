@@ -30,6 +30,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Textarea } from "../ui/textarea"
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "../ui/table"
+import { Separator } from "../ui/separator"
 
 // Step Schemas
 const userSelectionSchema = z.object({
@@ -43,12 +44,6 @@ const userVerificationSchema = z.object({
     address: z.string(),
 })
 
-const loanDetailsSchema = z.object({
-  loanAmount: z.coerce.number().positive("Loan amount must be positive."),
-  interestRate: z.coerce.number().positive("Interest rate must be positive.").min(0).max(100),
-  term: z.coerce.number().int().positive("Term must be a positive number of months."),
-})
-
 const vehicleSchema = z.object({
     make: z.string().min(1, "Please select a vehicle make."),
     model: z.string().min(2, "Vehicle model is required."),
@@ -58,11 +53,16 @@ const vehicleSchema = z.object({
 })
 
 const guarantorSchema = z.object({
-    guarantorName: z.string().min(2, "Guarantor name is required."),
-    guarantorPhone: z.string().min(10, "Enter a valid phone number."),
-    guarantorWhatsapp: z.string().optional(),
-    guarantorAddress: z.string().min(5, "Guarantor address is required."),
-    guarantorPhoto: z.instanceof(File).optional(),
+    guarantor1Name: z.string().min(2, "Guarantor name is required."),
+    guarantor1Phone: z.string().min(10, "Enter a valid phone number."),
+    guarantor1Whatsapp: z.string().optional(),
+    guarantor1Address: z.string().min(5, "Guarantor address is required."),
+    guarantor1Photo: z.instanceof(File).optional(),
+    guarantor2Name: z.string().min(2, "Guarantor name is required."),
+    guarantor2Phone: z.string().min(10, "Enter a valid phone number."),
+    guarantor2Whatsapp: z.string().optional(),
+    guarantor2Address: z.string().min(5, "Guarantor address is required."),
+    guarantor2Photo: z.instanceof(File).optional(),
 })
 
 const documentsSchema = z.object({
@@ -70,7 +70,10 @@ const documentsSchema = z.object({
     rcBook: z.instanceof(File).refine(file => file.size > 0, "RC book photo is required."),
 })
 
-const repaymentSchema = z.object({
+const loanAndRepaymentSchema = z.object({
+    loanAmount: z.coerce.number().positive("Loan amount must be positive."),
+    interestRate: z.coerce.number().positive("Interest rate must be positive.").min(0).max(100),
+    term: z.coerce.number().int().positive("Term must be a positive number of months."),
     frequency: z.string().min(1, "Please select a repayment frequency."),
     startDate: z.date({ required_error: "Please select a start date." }),
 })
@@ -78,26 +81,24 @@ const repaymentSchema = z.object({
 // Combined Schema
 const formSchema = userSelectionSchema
   .merge(userVerificationSchema)
-  .merge(loanDetailsSchema)
   .merge(vehicleSchema)
   .merge(guarantorSchema)
   .merge(documentsSchema)
-  .merge(repaymentSchema);
+  .merge(loanAndRepaymentSchema);
 
 const steps = [
   { id: 'User Selection', schema: userSelectionSchema, fields: ['userId'], icon: Search },
   { id: 'User Verification', schema: userVerificationSchema, fields: ['fullName', 'email', 'phone', 'address'], icon: UserCheck },
-  { id: 'Loan Details', schema: loanDetailsSchema, fields: ['loanAmount', 'interestRate', 'term'], icon: FileSignature },
   { id: 'Vehicle Info', schema: vehicleSchema, fields: ['make', 'model', 'year', 'registrationNumber', 'vehiclePhoto'], icon: Bike },
-  { id: 'Guarantor', schema: guarantorSchema, fields: ['guarantorName', 'guarantorPhone', 'guarantorWhatsapp', 'guarantorAddress', 'guarantorPhoto'], icon: Users },
+  { id: 'Guarantors', schema: guarantorSchema, fields: ['guarantor1Name', 'guarantor1Phone', 'guarantor1Address', 'guarantor2Name', 'guarantor2Phone', 'guarantor2Address'], icon: Users },
   { id: 'Documents', schema: documentsSchema, fields: ['signature', 'rcBook'], icon: BookImage },
-  { id: 'Repayment Schedule', schema: repaymentSchema, fields: ['frequency', 'startDate'], icon: Calculator },
+  { id: 'Loan & Repayment', schema: loanAndRepaymentSchema, fields: ['loanAmount', 'interestRate', 'term', 'frequency', 'startDate'], icon: Calculator },
 ]
 
 const vehicleMakes = ["Honda", "TVS", "Bajaj", "Hero", "Suzuki", "Yamaha", "Royal Enfield", "KTM", "Vespa", "Aprilia", "Jawa"];
 
 type FileUploadPreviewProps = {
-    fieldName: "vehiclePhoto" | "signature" | "rcBook" | "guarantorPhoto";
+    fieldName: "vehiclePhoto" | "signature" | "rcBook" | "guarantor1Photo" | "guarantor2Photo";
     label: string;
     icon: React.ReactNode;
     form: any;
@@ -165,12 +166,10 @@ export function LoanCreationForm() {
     const { toast } = useToast()
     const [currentStep, setCurrentStep] = React.useState(0)
     
-    // User search state
     const [allUsers, setAllUsers] = React.useState<AppUser[]>([]);
     const [searchTerm, setSearchTerm] = React.useState("");
     const [selectedUser, setSelectedUser] = React.useState<AppUser | null>(null);
 
-    // Repayment schedule state
     const [repaymentSchedule, setRepaymentSchedule] = React.useState<{date: string, amount: string}[]>([]);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -184,10 +183,14 @@ export function LoanCreationForm() {
             model: "",
             year: new Date().getFullYear(),
             registrationNumber: "",
-            guarantorName: "",
-            guarantorPhone: "",
-            guarantorWhatsapp: "",
-            guarantorAddress: "",
+            guarantor1Name: "",
+            guarantor1Phone: "",
+            guarantor1Whatsapp: "",
+            guarantor1Address: "",
+            guarantor2Name: "",
+            guarantor2Phone: "",
+            guarantor2Whatsapp: "",
+            guarantor2Address: "",
             frequency: "",
         },
     })
@@ -223,7 +226,6 @@ export function LoanCreationForm() {
         }
         setRepaymentSchedule(schedule);
     };
-
 
     React.useEffect(() => {
         const fetchUsers = async () => {
@@ -370,23 +372,6 @@ export function LoanCreationForm() {
                         {currentStep === 2 && (
                             <div className="space-y-4">
                                <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <FormField name="loanAmount" control={form.control} render={({ field }) => (
-                                        <FormItem><FormLabel>Loan Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 50000" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
-                                    <FormField name="interestRate" control={form.control} render={({ field }) => (
-                                        <FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 12.5" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
-                                     <FormField name="term" control={form.control} render={({ field }) => (
-                                        <FormItem><FormLabel>Term (Months)</FormLabel><FormControl><Input type="number" placeholder="e.g., 24" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
-                                </div>
-                            </div>
-                        )}
-
-                        {currentStep === 3 && (
-                            <div className="space-y-4">
-                               <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-6">
                                         <FormField
@@ -433,30 +418,54 @@ export function LoanCreationForm() {
                             </div>
                         )}
                         
-                        {currentStep === 4 && (
+                        {currentStep === 3 && (
                              <div className="space-y-6">
-                               <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
-                                <div className="grid md:grid-cols-2 gap-8 items-start">
+                                <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                                    {/* Guarantor 1 */}
                                     <div className="space-y-4 p-4 border rounded-md">
-                                        <h4 className="font-medium">Guarantor Details</h4>
-                                        <FormField name="guarantorName" control={form.control} render={({ field }) => (
-                                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <h4 className="font-medium text-center">Guarantor 1</h4>
+                                        <Separator />
+                                        <FormField name="guarantor1Name" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Guarantor One" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
-                                        <FormField name="guarantorPhone" control={form.control} render={({ field }) => (
+                                        <FormField name="guarantor1Phone" control={form.control} render={({ field }) => (
                                             <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(123) 456-7890" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
-                                        <FormField name="guarantorWhatsapp" control={form.control} render={({ field }) => (
+                                        <FormField name="guarantor1Whatsapp" control={form.control} render={({ field }) => (
                                             <FormItem><FormLabel>WhatsApp Number (Optional)</FormLabel><FormControl><Input placeholder="(123) 456-7890" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
-                                        <FormField name="guarantorAddress" control={form.control} render={({ field }) => (
-                                            <FormItem><FormLabel>Full Address</FormLabel><FormControl><Textarea placeholder="123 Main St, Anytown, USA" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormField name="guarantor1Address" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Address</FormLabel><FormControl><Textarea placeholder="123 Guarantee St, Trustville, USA" {...field} /></FormControl><FormMessage /></FormItem>
                                         )} />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <FileUploadWithPreview
+                                         <FileUploadWithPreview
                                             form={form}
-                                            fieldName="guarantorPhoto"
-                                            label="Guarantor Photo (Optional)"
+                                            fieldName="guarantor1Photo"
+                                            label="Guarantor 1 Photo (Optional)"
+                                            icon={<User />}
+                                        />
+                                    </div>
+
+                                    {/* Guarantor 2 */}
+                                     <div className="space-y-4 p-4 border rounded-md">
+                                        <h4 className="font-medium text-center">Guarantor 2</h4>
+                                        <Separator />
+                                        <FormField name="guarantor2Name" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Guarantor Two" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField name="guarantor2Phone" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(987) 654-3210" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField name="guarantor2Whatsapp" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>WhatsApp Number (Optional)</FormLabel><FormControl><Input placeholder="(987) 654-3210" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField name="guarantor2Address" control={form.control} render={({ field }) => (
+                                            <FormItem><FormLabel>Full Address</FormLabel><FormControl><Textarea placeholder="456 Support Ave, Reliability, USA" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                         <FileUploadWithPreview
+                                            form={form}
+                                            fieldName="guarantor2Photo"
+                                            label="Guarantor 2 Photo (Optional)"
                                             icon={<User />}
                                         />
                                     </div>
@@ -464,7 +473,7 @@ export function LoanCreationForm() {
                             </div>
                         )}
 
-                         {currentStep === 5 && (
+                         {currentStep === 4 && (
                             <div className="space-y-6">
                                 <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -484,9 +493,22 @@ export function LoanCreationForm() {
                             </div>
                         )}
 
-                        {currentStep === 6 && (
+                        {currentStep === 5 && (
                             <div className="space-y-6">
                                 <h3 className="text-lg font-medium flex items-center gap-2"><IconComponent /> {steps[currentStep].id}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <FormField name="loanAmount" control={form.control} render={({ field }) => (
+                                        <FormItem><FormLabel>Loan Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 50000" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                    <FormField name="interestRate" control={form.control} render={({ field }) => (
+                                        <FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 12.5" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                     <FormField name="term" control={form.control} render={({ field }) => (
+                                        <FormItem><FormLabel>Term (Months)</FormLabel><FormControl><Input type="number" placeholder="e.g., 24" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                </div>
+                                <Separator />
+                                <h3 className="text-lg font-medium flex items-center gap-2 pt-4">Repayment Schedule</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                      <FormField
                                         control={form.control}
