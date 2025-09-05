@@ -62,7 +62,7 @@ export function LoansClient({ loans: initialLoans }: LoansClientProps) {
                     </TabsList>
                 </Tabs>
                 <Button asChild>
-                    <Link href="/apply">
+                    <Link href="/loans/new">
                         <FilePlus2 className="mr-2 h-4 w-4" />
                         New Loan
                     </Link>

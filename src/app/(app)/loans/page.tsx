@@ -11,7 +11,6 @@ export default function LoansPage() {
 
   return (
     <div className="space-y-6">
-        {/* The title and description are handled inside the LoansClient now */}
         <LoansClient loans={allLoans} />
     </div>
   )
