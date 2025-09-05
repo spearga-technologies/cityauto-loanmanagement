@@ -1,6 +1,3 @@
-// This is a placeholder for your Firebase configuration.
-// Replace it with your actual Firebase project's configuration.
-// For more information, see: https://firebase.google.com/docs/web/setup
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
