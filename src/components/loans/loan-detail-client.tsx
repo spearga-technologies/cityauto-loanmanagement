@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import type { Loan, Payment } from "@/lib/data"
+import type { Loan, Payment, ScheduledPayment } from "@/lib/data"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -17,10 +17,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PaymentTracker } from "./payment-tracker"
 import Image from "next/image"
 import { Button } from "../ui/button"
-import { PlusCircle } from "lucide-react"
+import { PlusCircle, Edit } from "lucide-react"
 import { AddPaymentDialog } from "./add-payment-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Separator } from "../ui/separator"
+import { UpdatePaymentDialog } from "./update-payment-dialog"
+import { cn } from "@/lib/utils"
+
 
 type LoanDetailClientProps = {
   loan: Loan;
@@ -33,9 +36,19 @@ const statusColors: { [key: string]: string } = {
   Paid: "text-blue-600 bg-blue-500/10",
 }
 
+const scheduleStatusColors: { [key: string]: string } = {
+  Paid: "text-green-600 bg-green-500/10",
+  Due: "text-blue-600 bg-blue-500/10",
+  'Partially Paid': "text-yellow-600 bg-yellow-500/10",
+  Overdue: "text-red-600 bg-red-500/10",
+};
+
+
 export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
     const [loan, setLoan] = React.useState(initialLoan);
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+    const [isUpdatePaymentDialogOpen, setIsUpdatePaymentDialogOpen] = React.useState(false);
+    const [selectedPayment, setSelectedPayment] = React.useState<ScheduledPayment | null>(null);
     const { toast } = useToast();
 
     const handleAddPayment = (loanId: string, payment: { amount: number; date: Date; description: string }) => {
@@ -58,6 +71,21 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
         setIsPaymentDialogOpen(false);
     };
 
+    const handleUpdatePayment = (updatedPayment: ScheduledPayment) => {
+        setLoan(prevLoan => ({
+            ...prevLoan,
+            repaymentSchedule: prevLoan.repaymentSchedule.map(p => p.id === updatedPayment.id ? updatedPayment : p),
+        }));
+        toast({ title: "Payment Updated", description: `Payment ${updatedPayment.id} has been successfully updated.` });
+        setIsUpdatePaymentDialogOpen(false);
+        setSelectedPayment(null);
+    }
+
+    const openUpdateDialog = (payment: ScheduledPayment) => {
+        setSelectedPayment(payment);
+        setIsUpdatePaymentDialogOpen(true);
+    }
+
 
   return (
     <div className="space-y-6">
@@ -72,9 +100,10 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
         </div>
       </div>
       
-      <Tabs defaultValue="details">
-        <TabsList className="grid w-full grid-cols-3 sm:w-[400px]">
+      <Tabs defaultValue="schedule">
+        <TabsList className="grid w-full grid-cols-4 sm:w-[500px]">
           <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="schedule">Repayment Schedule</TabsTrigger>
           <TabsTrigger value="history">Payment History</TabsTrigger>
           <TabsTrigger value="categorize">Categorize Payment</TabsTrigger>
         </TabsList>
@@ -120,16 +149,62 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
             </CardContent>
           </Card>
         </TabsContent>
+         <TabsContent value="schedule">
+          <Card>
+            <CardHeader>
+                <CardTitle>Repayment Schedule</CardTitle>
+                <CardDescription>Manage and track all scheduled payments for this loan.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Amount Due</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Amount Paid</TableHead>
+                    <TableHead>Payment Method</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loan.repaymentSchedule.length > 0 ? loan.repaymentSchedule.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell>{payment.dueDate}</TableCell>
+                      <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                      <TableCell><Badge variant="outline" className={cn(scheduleStatusColors[payment.status])}>{payment.status}</Badge></TableCell>
+                      <TableCell>{payment.amountPaid ? `$${payment.amountPaid.toLocaleString()}`: 'N/A'}</TableCell>
+                      <TableCell>{payment.paymentMethod || 'N/A'}</TableCell>
+                      <TableCell>{payment.paymentReference || 'N/A'}</TableCell>
+                      <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => openUpdateDialog(payment)}>
+                              <Edit className="h-4 w-4" />
+                          </Button>
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        No repayment schedule found for this loan.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="history">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Payment History</CardTitle>
-                <CardDescription>A log of all payments made for this loan.</CardDescription>
+                <CardTitle>Manual Payment History</CardTitle>
+                <CardDescription>A log of all manually added payments for this loan.</CardDescription>
               </div>
                <Button onClick={() => setIsPaymentDialogOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Payment
+                    Add Manual Payment
                 </Button>
             </CardHeader>
             <CardContent>
@@ -153,7 +228,7 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
                   )) : (
                     <TableRow>
                       <TableCell colSpan={4} className="h-24 text-center">
-                        No payments have been recorded for this loan.
+                        No manual payments have been recorded for this loan.
                       </TableCell>
                     </TableRow>
                   )}
@@ -172,6 +247,14 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
             loan={loan}
             onSubmit={handleAddPayment}
         />
+        {selectedPayment && (
+            <UpdatePaymentDialog 
+                isOpen={isUpdatePaymentDialogOpen}
+                onOpenChange={setIsUpdatePaymentDialogOpen}
+                payment={selectedPayment}
+                onSubmit={handleUpdatePayment}
+            />
+        )}
     </div>
   )
 }

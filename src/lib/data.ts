@@ -28,6 +28,7 @@ export type Loan = {
   };
   payments: Payment[];
   outstandingBalance: number;
+  repaymentSchedule: ScheduledPayment[];
 };
 
 export type Payment = {
@@ -37,6 +38,17 @@ export type Payment = {
   description: string;
   category?: 'principal' | 'interest' | 'fees' | 'other';
 };
+
+export type ScheduledPayment = {
+    id: string;
+    dueDate: string;
+    amount: number;
+    status: 'Due' | 'Paid' | 'Partially Paid' | 'Overdue';
+    amountPaid?: number;
+    paymentDate?: string;
+    paymentMethod?: 'Cash' | 'UPI' | 'Bank Transfer';
+    paymentReference?: string;
+}
 
 export const loans: Loan[] = [
   {
@@ -57,7 +69,7 @@ export const loans: Loan[] = [
       model: 'Activa 6G',
       year: 2022,
       vin: '12345ABCDEFGHIJKL',
-      photoUrl: 'https://picsum.photos/600/400',
+      photoUrl: 'https://picsum.photos/seed/scooter/600/400',
     },
      guarantors: [
       { name: 'Guarantor One', phone: '555-0101' },
@@ -72,6 +84,12 @@ export const loans: Loan[] = [
       { id: 'P02', date: '2023-12-15', amount: 2365.7, description: 'Online Transfer' },
     ],
     outstandingBalance: 45268.6,
+    repaymentSchedule: [
+        { id: 'SCH01', dueDate: '2023-11-15', amount: 2365.70, status: 'Paid', amountPaid: 2365.70, paymentDate: '2023-11-14', paymentMethod: 'UPI', paymentReference: 'UPI12345' },
+        { id: 'SCH02', dueDate: '2023-12-15', amount: 2365.70, status: 'Paid', amountPaid: 2365.70, paymentDate: '2023-12-15', paymentMethod: 'Bank Transfer', paymentReference: 'BANK67890' },
+        { id: 'SCH03', dueDate: '2024-01-15', amount: 2365.70, status: 'Due' },
+        { id: 'SCH04', dueDate: '2024-02-15', amount: 2365.70, status: 'Due' },
+    ]
   },
   {
     id: 'LF002',
@@ -102,6 +120,7 @@ export const loans: Loan[] = [
     },
     payments: [],
     outstandingBalance: 75000,
+    repaymentSchedule: [],
   },
   {
     id: 'LF003',
@@ -132,6 +151,7 @@ export const loans: Loan[] = [
     },
     payments: [],
     outstandingBalance: 0,
+    repaymentSchedule: [],
   },
   {
     id: 'LF004',
@@ -164,6 +184,7 @@ export const loans: Loan[] = [
       { id: 'P01', date: '2023-10-28', amount: 3094.5, description: 'Scheduled Payment' },
     ],
     outstandingBalance: 86905.5,
+    repaymentSchedule: [],
   },
   {
     id: 'LF005',
@@ -195,6 +216,7 @@ export const loans: Loan[] = [
     },
     payments: [],
     outstandingBalance: 65000,
+    repaymentSchedule: [],
   },
 ];
 
