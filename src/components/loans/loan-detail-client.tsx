@@ -14,7 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PaymentTracker } from "./payment-tracker"
 import Image from "next/image"
 import { Button } from "../ui/button"
 import { PlusCircle, Edit } from "lucide-react"
@@ -100,12 +99,10 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
         </div>
       </div>
       
-      <Tabs defaultValue="schedule">
-        <TabsList className="grid w-full grid-cols-4 sm:w-[500px]">
+      <Tabs defaultValue="repayments">
+        <TabsList className="grid w-full grid-cols-2 sm:w-[300px]">
           <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="schedule">Repayment Schedule</TabsTrigger>
-          <TabsTrigger value="history">Payment History</TabsTrigger>
-          <TabsTrigger value="categorize">Categorize Payment</TabsTrigger>
+          <TabsTrigger value="repayments">Repayments</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
           <Card>
@@ -149,96 +146,94 @@ export function LoanDetailClient({ loan: initialLoan }: LoanDetailClientProps) {
             </CardContent>
           </Card>
         </TabsContent>
-         <TabsContent value="schedule">
-          <Card>
-            <CardHeader>
-                <CardTitle>Repayment Schedule</CardTitle>
-                <CardDescription>Manage and track all scheduled payments for this loan.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Amount Due</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Amount Paid</TableHead>
-                    <TableHead>Payment Method</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loan.repaymentSchedule.length > 0 ? loan.repaymentSchedule.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{payment.dueDate}</TableCell>
-                      <TableCell>${payment.amount.toLocaleString()}</TableCell>
-                      <TableCell><Badge variant="outline" className={cn(scheduleStatusColors[payment.status])}>{payment.status}</Badge></TableCell>
-                      <TableCell>{payment.amountPaid ? `$${payment.amountPaid.toLocaleString()}`: 'N/A'}</TableCell>
-                      <TableCell>{payment.paymentMethod || 'N/A'}</TableCell>
-                      <TableCell>{payment.paymentReference || 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => openUpdateDialog(payment)}>
-                              <Edit className="h-4 w-4" />
-                          </Button>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
+         <TabsContent value="repayments">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Repayment Schedule</CardTitle>
+                    <CardDescription>Manage and track all scheduled payments for this loan.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
-                        No repayment schedule found for this loan.
-                      </TableCell>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead>Amount Due</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Amount Paid</TableHead>
+                        <TableHead>Payment Method</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="history">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Manual Payment History</CardTitle>
-                <CardDescription>A log of all manually added payments for this loan.</CardDescription>
-              </div>
-               <Button onClick={() => setIsPaymentDialogOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Manual Payment
-                </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Payment ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loan.payments.length > 0 ? loan.payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{payment.id}</TableCell>
-                      <TableCell>{payment.date}</TableCell>
-                      <TableCell>{payment.description}</TableCell>
-                      <TableCell className="text-right">${payment.amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  )) : (
+                    </TableHeader>
+                    <TableBody>
+                    {loan.repaymentSchedule.length > 0 ? loan.repaymentSchedule.map((payment) => (
+                        <TableRow key={payment.id}>
+                        <TableCell>{payment.dueDate}</TableCell>
+                        <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                        <TableCell><Badge variant="outline" className={cn(scheduleStatusColors[payment.status])}>{payment.status}</Badge></TableCell>
+                        <TableCell>{payment.amountPaid ? `$${payment.amountPaid.toLocaleString()}`: 'N/A'}</TableCell>
+                        <TableCell>{payment.paymentMethod || 'N/A'}</TableCell>
+                        <TableCell>{payment.paymentReference || 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => openUpdateDialog(payment)}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center">
+                            No repayment schedule found for this loan.
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+
+            <Separator className="my-6" />
+
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Manual Payment History</CardTitle>
+                    <CardDescription>A log of all manually added, unscheduled payments.</CardDescription>
+                </div>
+                <Button onClick={() => setIsPaymentDialogOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Manual Payment
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
-                        No manual payments have been recorded for this loan.
-                      </TableCell>
+                        <TableHead>Payment ID</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="categorize">
-            <PaymentTracker />
+                    </TableHeader>
+                    <TableBody>
+                    {loan.payments.length > 0 ? loan.payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                        <TableCell>{payment.id}</TableCell>
+                        <TableCell>{payment.date}</TableCell>
+                        <TableCell>{payment.description}</TableCell>
+                        <TableCell className="text-right">${payment.amount.toLocaleString()}</TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                            No manual payments have been recorded for this loan.
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
        <AddPaymentDialog
