@@ -180,50 +180,51 @@ export function LoanApplicationForm({ onSuccess }: LoanApplicationFormProps) {
                          {currentStep === 2 && (
                             <div className="space-y-6">
                                 <h3 className="text-lg font-medium">Identity Verification</h3>
-                                <FormField
-                                    name="photo"
-                                    control={form.control}
-                                    render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>User Photo</FormLabel>
-                                        <div className="flex items-center gap-4">
-                                        <Avatar className="h-24 w-24">
-                                            <AvatarImage src={photoPreview || undefined} alt="User photo" className="object-cover" />
-                                            <AvatarFallback><User className="h-10 w-10" /></AvatarFallback>
-                                        </Avatar>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => photoFileInputRef.current?.click()}
-                                        >
-                                            <Upload className="mr-2 h-4 w-4" />
-                                            Upload Photo
-                                        </Button>
-                                        <FormControl>
-                                            <Input
-                                            type="file"
-                                            className="hidden"
-                                            ref={photoFileInputRef}
-                                            onChange={(e) => handleFileChange(e, "photo", setPhotoPreview)}
-                                            accept="image/*"
-                                            />
-                                        </FormControl>
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                    )}
-                                />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     <FormField name="aadharNumber" control={form.control} render={({ field }) => (
-                                        <FormItem><FormLabel>Aadhaar Card Number</FormLabel><FormControl><Input placeholder="12-digit number" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                    <FormField
+                                        name="photo"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>User Photo</FormLabel>
+                                            <div className="flex flex-col items-center gap-4 border p-4 rounded-md">
+                                            <Avatar className="h-32 w-32">
+                                                <AvatarImage src={photoPreview || undefined} alt="User photo" className="object-cover" />
+                                                <AvatarFallback><User className="h-16 w-16" /></AvatarFallback>
+                                            </Avatar>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => photoFileInputRef.current?.click()}
+                                                className="w-full"
+                                            >
+                                                <Upload className="mr-2 h-4 w-4" />
+                                                Upload Photo
+                                            </Button>
+                                            <FormControl>
+                                                <Input
+                                                type="file"
+                                                className="hidden"
+                                                ref={photoFileInputRef}
+                                                onChange={(e) => handleFileChange(e, "photo", setPhotoPreview)}
+                                                accept="image/*"
+                                                />
+                                            </FormControl>
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                        )}
+                                    />
                                     <FormField
                                         name="aadhar"
                                         control={form.control}
                                         render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Aadhaar Card Photo</FormLabel>
-                                            <FormControl>
+                                            <div className="flex flex-col items-center gap-4 border p-4 rounded-md min-h-[228px] justify-center">
+                                                {aadharPreview ? (
+                                                    <img src={aadharPreview} alt="Aadhaar preview" className="h-32 w-auto rounded-md object-contain" />
+                                                ) : <div className="text-muted-foreground text-sm text-center">Aadhaar preview will appear here.</div>}
                                                 <Button
                                                     type="button"
                                                     variant="outline"
@@ -233,20 +234,26 @@ export function LoanApplicationForm({ onSuccess }: LoanApplicationFormProps) {
                                                     <Upload className="mr-2 h-4 w-4" />
                                                     {aadharPreview ? "Change Photo" : "Upload Aadhaar Photo"}
                                                 </Button>
-                                            </FormControl>
-                                             <Input
-                                                type="file"
-                                                className="hidden"
-                                                ref={aadharFileInputRef}
-                                                onChange={(e) => handleFileChange(e, "aadhar", setAadharPreview)}
-                                                accept="image/*"
-                                                />
-                                            {aadharPreview && <img src={aadharPreview} alt="Aadhaar preview" className="mt-2 h-32 w-auto rounded-md object-contain" />}
+                                                <FormControl>
+                                                    <Input
+                                                        type="file"
+                                                        className="hidden"
+                                                        ref={aadharFileInputRef}
+                                                        onChange={(e) => handleFileChange(e, "aadhar", setAadharPreview)}
+                                                        accept="image/*"
+                                                        />
+                                                </FormControl>
+                                            </div>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     <FormField name="aadharNumber" control={form.control} render={({ field }) => (
+                                        <FormItem><FormLabel>Aadhaar Card Number</FormLabel><FormControl><Input placeholder="12-digit number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
                                     <FormField name="pan" control={form.control} render={({ field }) => (
-                                        <FormItem className="md:col-span-2"><FormLabel>PAN Card Number (Optional)</FormLabel><FormControl><Input placeholder="10-character number" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>PAN Card Number (Optional)</FormLabel><FormControl><Input placeholder="10-character number" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                 </div>
                             </div>
