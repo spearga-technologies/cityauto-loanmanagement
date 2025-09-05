@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -32,7 +33,7 @@ const contactDetailsSchema = z.object({
 })
 
 const verificationSchema = z.object({
-  aadhar: z.string().length(12, "Aadhaar number must be 12 digits."),
+  aadhar: z.instanceof(File).refine(file => file.size > 0, "Aadhaar photo is required."),
   pan: z.string().optional(),
   photo: z.instanceof(File).refine(file => file.size > 0, "A profile photo is required."),
 })
@@ -46,10 +47,12 @@ const steps = [
 ]
 
 export function LoanApplicationForm() {
+    const { toast } = useToast()
     const [currentStep, setCurrentStep] = React.useState(0)
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null)
-    const fileInputRef = React.useRef<HTMLInputElement>(null)
-    const { toast } = useToast()
+    const [aadharPreview, setAadharPreview] = React.useState<string | null>(null)
+    const photoFileInputRef = React.useRef<HTMLInputElement>(null)
+    const aadharFileInputRef = React.useRef<HTMLInputElement>(null)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -59,20 +62,23 @@ export function LoanApplicationForm() {
             phone: "",
             whatsappNumber: "",
             address: "",
-            aadhar: "",
             pan: "",
         },
     })
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (
+        e: React.ChangeEvent<HTMLInputElement>, 
+        fieldName: "photo" | "aadhar",
+        setPreview: (value: string | null) => void
+    ) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPhotoPreview(reader.result as string)
+                setPreview(reader.result as string)
             }
             reader.readAsDataURL(file)
-            form.setValue("photo", file)
+            form.setValue(fieldName, file)
         }
     }
 
@@ -100,6 +106,7 @@ export function LoanApplicationForm() {
                 form.reset()
                 setCurrentStep(0)
                 setPhotoPreview(null)
+                setAadharPreview(null)
                 resolve(null)
             }, 1500)
         })
@@ -153,7 +160,7 @@ export function LoanApplicationForm() {
                         )}
 
                          {currentStep === 2 && (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <h3 className="text-lg font-medium">Identity Verification</h3>
                                 <FormField
                                     name="photo"
@@ -169,7 +176,7 @@ export function LoanApplicationForm() {
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            onClick={() => fileInputRef.current?.click()}
+                                            onClick={() => photoFileInputRef.current?.click()}
                                         >
                                             <Upload className="mr-2 h-4 w-4" />
                                             Upload Photo
@@ -178,8 +185,8 @@ export function LoanApplicationForm() {
                                             <Input
                                             type="file"
                                             className="hidden"
-                                            ref={fileInputRef}
-                                            onChange={handlePhotoChange}
+                                            ref={photoFileInputRef}
+                                            onChange={(e) => handleFileChange(e, "photo", setPhotoPreview)}
                                             accept="image/*"
                                             />
                                         </FormControl>
@@ -189,8 +196,33 @@ export function LoanApplicationForm() {
                                     )}
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <FormField name="aadhar" control={form.control} render={({ field }) => (
-                                        <FormItem><FormLabel>Aadhaar Card Number</FormLabel><FormControl><Input placeholder="12-digit number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormField
+                                        name="aadhar"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Aadhaar Card Photo</FormLabel>
+                                            <FormControl>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="w-full"
+                                                    onClick={() => aadharFileInputRef.current?.click()}
+                                                >
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    {aadharPreview ? "Change Photo" : "Upload Aadhaar Photo"}
+                                                </Button>
+                                            </FormControl>
+                                             <Input
+                                                type="file"
+                                                className="hidden"
+                                                ref={aadharFileInputRef}
+                                                onChange={(e) => handleFileChange(e, "aadhar", setAadharPreview)}
+                                                accept="image/*"
+                                                />
+                                            {aadharPreview && <img src={aadharPreview} alt="Aadhaar preview" className="mt-2 h-32 w-auto rounded-md object-contain" />}
+                                            <FormMessage />
+                                        </FormItem>
                                     )} />
                                     <FormField name="pan" control={form.control} render={({ field }) => (
                                         <FormItem><FormLabel>PAN Card Number (Optional)</FormLabel><FormControl><Input placeholder="10-character number" {...field} /></FormControl><FormMessage /></FormItem>
