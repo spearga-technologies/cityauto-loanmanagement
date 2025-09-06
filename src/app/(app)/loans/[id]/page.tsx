@@ -1,6 +1,9 @@
+
 import { LoanDetailClient } from "@/components/loans/loan-detail-client";
 import { getLoanById } from "@/lib/data";
 import { notFound } from "next/navigation";
+
+export const runtime = 'edge';
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const loan = getLoanById(params.id);
